@@ -1,5 +1,9 @@
 import ZBank.*;
 import ZBank.exceptions.*;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.*;
 
 public class Main {
@@ -19,8 +23,10 @@ public class Main {
             System.out.println(Messages.ACCOUNT_CREATION_SUCCESS);
             System.out.println(Messages.YOUR_CUSTOMER_ID+newAccount.getCustomerID());
             System.out.println(Messages.YOUR_ACCOUNT_NUMBER+newAccount.getAccountNumber());
-        } catch (AccountAlreadyExistsException e) {
-            getDetailsAndCreateAccount(ckycNumber,password);
+        } catch (AccountException e) {
+            if(e.getErrorCode() == 409) {
+                getDetailsAndCreateAccount(ckycNumber,password);
+            }
         }
     }
     private static void getDetailsAndDepositCash(){
@@ -35,7 +41,7 @@ public class Main {
         try {
             Bank.deposit(accountNumber,amount);
             System.out.println(Messages.DEPOSIT_SUCCESS);
-        } catch (AccountNotFoundException e) {
+        } catch (AccountException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -50,7 +56,7 @@ public class Main {
             Account account = Bank.login(customerID,passwordHash);
             System.out.println(Messages.LOGIN_SUCCESS);
             goToUserMenu(account);
-        } catch (AccountNotFoundException | PasswordMismatchException e) {
+        } catch (AccountException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -76,7 +82,7 @@ public class Main {
                 System.out.println(Messages.CKYC_MISMATCH);
             }
 
-        } catch (AccountNotFoundException e) {
+        } catch (AccountException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -86,7 +92,7 @@ public class Main {
         try {
             account.withdraw(amount);
             System.out.println(Messages.WITHDRAWL_SUCCESS);
-        } catch (InsufficientBalanceException e) {
+        } catch (AccountException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -104,22 +110,24 @@ public class Main {
         try {
             account.transfer(destinationAccountNumber,amount);
             System.out.println(Messages.TRANSFER_SUCCESS);
-        } catch (BeneficiaryNotFoundException e) {
-            System.out.println(Messages.BENEFICIARY_NOT_FOUND);
-            System.out.println(Messages.ADD_BENEFICIARY_NOW);
-            System.out.println(Messages.YES_OR_NO);
-            scanner.nextLine();
-            String choice = scanner.nextLine();
-            if(Objects.equals(choice, "y") | Objects.equals(choice, "Y")){
-                getDetailsAndAddBeneficiary(account,destinationAccountNumber,destinationIfscCode);
-                System.out.println(Messages.CONTINUE_TRANSACTION_NOW);
+        } catch (BeneficiaryException e) {
+            if(e.getErrorCode() == 404){
+                System.out.println(Messages.BENEFICIARY_NOT_FOUND);
+                System.out.println(Messages.ADD_BENEFICIARY_NOW);
                 System.out.println(Messages.YES_OR_NO);
-                choice = scanner.nextLine();
+                scanner.nextLine();
+                String choice = scanner.nextLine();
                 if(Objects.equals(choice, "y") | Objects.equals(choice, "Y")){
-                    getDetailsAndBankTransfer(account,destinationAccountNumber,destinationIfscCode,amount);
+                    getDetailsAndAddBeneficiary(account,destinationAccountNumber,destinationIfscCode);
+                    System.out.println(Messages.CONTINUE_TRANSACTION_NOW);
+                    System.out.println(Messages.YES_OR_NO);
+                    choice = scanner.nextLine();
+                    if(Objects.equals(choice, "y") | Objects.equals(choice, "Y")){
+                        getDetailsAndBankTransfer(account,destinationAccountNumber,destinationIfscCode,amount);
+                    }
                 }
             }
-        } catch (InsufficientBalanceException | AccountNotFoundException e) {
+        } catch (AccountException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -136,7 +144,7 @@ public class Main {
         try {
             account.addBeneficiary(newBeneficiary);
             System.out.println(Messages.ADD_BENEFICIARY_SUCCESS);
-        } catch (BeneficiaryAlreadyExistsException e) {
+        } catch (BeneficiaryException e) {
             System.out.println(e.getMessage());
         }
 
@@ -148,7 +156,7 @@ public class Main {
         try {
             account.removeBeneficiary(destinationAccountNumber);
             System.out.println(Messages.REMOVE_BENEFICIARY_SUCCESS);
-        } catch (BeneficiaryNotFoundException e) {
+        } catch (BeneficiaryException e) {
             System.out.println(e.getMessage());
         }
 
@@ -156,15 +164,22 @@ public class Main {
     private static void viewAllAccounts(){
         try {
             Bank.viewAllAccounts();
-        } catch (NoAccountFoundException e) {
-            System.out.println(Messages.NO_ACCOUNT_FOUND);
+        } catch (AccountException e) {
+            System.out.println(e.getMessage());
         }
     }
     private static void viewAllTransactions(){
         try {
             Bank.viewAllTransactions();
-        } catch (NoTransactionFoundException e) {
-            System.out.println(Messages.NO_TRANSACTION_FOUND);
+        } catch (TransactionException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+    private static void viewAllBeneficiaries(Account account){
+        try {
+            account.viewBeneficiaries();
+        } catch (BeneficiaryException e) {
+            System.out.println(e.getMessage());
         }
     }
     private static void showWelcomeMessage(){
@@ -216,7 +231,7 @@ public class Main {
                         getDetailsAndBankTransfer(account);
                         break;
                     case 6:
-                        account.viewBeneficiaries();
+                        viewAllBeneficiaries(account);
                         break;
                     case 7:
                         getDetailsAndAddBeneficiary(account);
@@ -271,7 +286,20 @@ public class Main {
             }
         }while (choice != 0);
     }
+    private static void connectToDataBase(){
+        try {
+           String MYSQL_USER =  System.getenv("MYSQLUSER");
+           String MYSQL_PASSWORD = System.getenv("MYSQLPASS");
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con= DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/bank",MYSQL_USER,MYSQL_PASSWORD);
+        } catch (ClassNotFoundException | SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void main(String[] args) {
+        connectToDataBase();
        goToGeneralMenu();
     }
 }

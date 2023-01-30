@@ -38,9 +38,6 @@ public class Account {
     public String getAccountNumber(){
         return this.accountNumber;
     }
-    public String getIfscCode(){
-        return this.ifscCode;
-    }
     public String getCustomerID(){
         return this.customerID;
     }
@@ -50,32 +47,35 @@ public class Account {
     public boolean comparePasswordHash(String givenHash){
         return Objects.equals(this.passwordHash, givenHash);
     }
-    public void addBeneficiary(Beneficiary newBeneficiary) throws BeneficiaryAlreadyExistsException {
+    public void addBeneficiary(Beneficiary newBeneficiary) throws BeneficiaryException {
             for(Beneficiary beneficiary : this.beneficiaries){
                 if(beneficiary.getAccountNumber().equals(newBeneficiary.getAccountNumber())){
-                    throw new BeneficiaryAlreadyExistsException();
+                    throw new BeneficiaryException(409,Messages.BENEFICIARY_ALREADY_EXISTS);
                 }
             }
             beneficiaries.add(newBeneficiary);
 
     }
-    public void viewBeneficiaries(){
+    public void viewBeneficiaries() throws BeneficiaryException{
+        if(beneficiaries.isEmpty()){
+            throw new BeneficiaryException(404,Messages.NO_BENEFICIARY_FOUND);
+        }
         for(Beneficiary beneficiary: beneficiaries){
             System.out.println(beneficiary.toString());
         }
     }
-    public void removeBeneficiary(String accountNumber) throws BeneficiaryNotFoundException {
+    public void removeBeneficiary(String accountNumber) throws BeneficiaryException {
         for(Beneficiary beneficiary : beneficiaries) {
             if (beneficiary.getAccountNumber().equals(accountNumber)) {
                 beneficiaries.remove(beneficiary);
                 return;
             }
         }
-        throw new BeneficiaryNotFoundException();
+        throw new BeneficiaryException(404,Messages.BENEFICIARY_NOT_FOUND);
     }
-    public void withdraw(int amount)throws InsufficientBalanceException {
+    public void withdraw(int amount)throws AccountException {
         if(balance<amount){
-            throw new InsufficientBalanceException();
+            throw new AccountException(400,Messages.INSUFFICIENT_BALANCE);
         }
         balance = balance - amount;
         Transaction transaction = new Transaction(this.accountNumber,null,amount,"Cash Withdrawl",TransactionType.WITHDRAW);
@@ -86,9 +86,9 @@ public class Account {
         Transaction transaction = new Transaction(null,this.accountNumber,amount,"Cash Deposit",TransactionType.DEPOSIT);
         Bank.logTransaction(transaction);
     }
-    public void transfer(String accountNumber, int amount) throws BeneficiaryNotFoundException, InsufficientBalanceException, AccountNotFoundException{
+    public void transfer(String accountNumber, int amount) throws BeneficiaryException, AccountException{
         if(this.balance < amount){
-            throw new InsufficientBalanceException();
+            throw new AccountException(400,Messages.INSUFFICIENT_BALANCE);
         }
             for(Beneficiary beneficiary : this.beneficiaries){
                 if(beneficiary.getAccountNumber().equals(accountNumber)){
@@ -98,7 +98,7 @@ public class Account {
                     Bank.logTransaction(transaction);
                     return;
                 }
-            throw new BeneficiaryNotFoundException();
+            throw new BeneficiaryException(404,Messages.BENEFICIARY_NOT_FOUND);
         }
 
     }

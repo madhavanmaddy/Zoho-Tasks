@@ -17,12 +17,13 @@ public class Messages {
     public static final String TRANSFER_SUCCESS = "Bank Transfer Successful!";
     public static final String ENTER_CUSTOMER_ID = "Please Enter your Customer ID : ";
     public static final String CUSTOMER_ID_NOT_FOUND = "Entered Customer ID doesn't exist.";
-    public static final String ACCOUNT_NUMBER_NOT_FOUND = "Entered Account Number doesn't exist.";
+    public static final String ACCOUNT_NOT_FOUND = "Entered Account Number doesn't exist.";
     public static final String BENEFICIARY_NOT_FOUND = "Entered Beneficiary doesn't exist.";
     public static final String ADD_BENEFICIARY_NOW = "Do you wish to Add Beneficiary Now?";
     public static final String ADD_BENEFICIARY_SUCCESS = "Beneficiary Added Successfully!";
     public static final String REMOVE_BENEFICIARY_SUCCESS = "Beneficiary Removed Successfully!";
     public static final String BENEFICIARY_ALREADY_EXISTS = "Beneficiary Already Exists!";
+    public static final String ACCOUNT_ALREADY_EXISTS = "Account Already Exists!";
     public static final String CONTINUE_TRANSACTION_NOW = "Do you wish to Continue the Transaction Now?";
     public static final String YES_OR_NO = "Enter Y for Yes or N for No.";
     public static final String PASSWORD_MISMATCH = "Entered password doesn't match our Bank Records.";
