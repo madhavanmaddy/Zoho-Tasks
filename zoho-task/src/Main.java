@@ -1,8 +1,5 @@
 import ZBank.*;
 import ZBank.exceptions.*;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -16,6 +13,30 @@ public class Main {
         String password = scanner.nextLine();
         getDetailsAndCreateAccount(ckycNumber,password);
     }
+
+    public static Account chooseAnAccount(List<Account> accounts){
+        System.out.println("Following Accounts are found for your Customer ID: ");
+        for (Account account: accounts){
+            System.out.println(account);
+        }
+        System.out.println("Please Enter an Account Number to Continue");
+        int accountNumber = scanner.nextInt();
+        for(Account account: accounts){
+            if(account.getAccountNumber() == accountNumber){
+                return account;
+            }
+        }
+        System.out.println(Messages.INVALID_INPUT);
+        return chooseAnAccount(accounts);
+    }
+    private static void viewAccountDetails(int accountNumber){
+        try {
+          Account account = Bank.getAccountByAccountNumber(accountNumber);
+          System.out.println(account);
+        } catch (AccountException | SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
     private static void getDetailsAndCreateAccount(String ckycNumber,String password){
         Account newAccount = new Account(ckycNumber,password);
         try {
@@ -27,36 +48,38 @@ public class Main {
             if(e.getErrorCode() == 409) {
                 getDetailsAndCreateAccount(ckycNumber,password);
             }
+        } catch (SQLException e){
+            System.out.println(e.getMessage());
         }
     }
     private static void getDetailsAndDepositCash(){
         scanner.nextLine();
         System.out.println(Messages.ENTER_DESTINATION_ACCOUNT_NUMBER);
-        String destinationAccountNumber = scanner.nextLine();
+        int destinationAccountNumber = scanner.nextInt();
         getDetailsAndDepositCash(destinationAccountNumber);
     }
-    private static void getDetailsAndDepositCash(String accountNumber){
+    private static void getDetailsAndDepositCash(int accountNumber){
         System.out.println(Messages.ENTER_DEPOSIT_AMOUNT);
         int amount = scanner.nextInt();
         try {
             Bank.deposit(accountNumber,amount);
             System.out.println(Messages.DEPOSIT_SUCCESS);
-        } catch (AccountException e) {
+        } catch (AccountException | SQLException | TransactionException e) {
             System.out.println(e.getMessage());
         }
     }
     private static void getDetailsAndLogin(){
+        System.out.println(Messages.ENTER_ACCOUNT_NUMBER);
+        int accountNumber = scanner.nextInt();
         scanner.nextLine();
-        System.out.println(Messages.ENTER_CUSTOMER_ID);
-        String customerID = scanner.nextLine();
         System.out.println(Messages.ENTER_PASSWORD);
         String password = scanner.nextLine();
         String passwordHash = Bank.generateHash(password);
         try {
-            Account account = Bank.login(customerID,passwordHash);
+            Account account = Bank.login(accountNumber,passwordHash);
             System.out.println(Messages.LOGIN_SUCCESS);
             goToUserMenu(account);
-        } catch (AccountException e) {
+        } catch (AccountException | SQLException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -65,24 +88,28 @@ public class Main {
         System.out.println(Messages.ENTER_NEW_PASSWORD);
         String password = scanner.nextLine();
         String newPasswordHash = Bank.generateHash(password);
-        account.changePassword(newPasswordHash);
-        System.out.println(Messages.PASSWORD_CHANGE_SUCCESS);
+        try {
+            account.changePassword(newPasswordHash);
+        } catch (SQLException | TransactionException e) {
+            System.out.println(e.getMessage());
+        }
     }
     private static void getDetailsAndChangePassword(){
         scanner.nextLine();
         System.out.println(Messages.ENTER_CUSTOMER_ID);
-        String customerID = scanner.nextLine();
+        int customerID = scanner.nextInt();
         System.out.println(Messages.ENTER_CKYC);
         String ckycNumber = scanner.nextLine();
         try {
-            Account account = Bank.getAccountByCustomerID(customerID);
+            List<Account> accounts = Bank.getAccountsByCustomerID(customerID);
+            Account account = chooseAnAccount(accounts);
             if(account.compareCkycNumber(ckycNumber)){
                 getDetailsAndChangePassword(account);
             }else{
                 System.out.println(Messages.CKYC_MISMATCH);
             }
 
-        } catch (AccountException e) {
+        } catch (AccountException | SQLException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -92,27 +119,27 @@ public class Main {
         try {
             account.withdraw(amount);
             System.out.println(Messages.WITHDRAWL_SUCCESS);
-        } catch (AccountException e) {
+        } catch (AccountException | TransactionException | SQLException e) {
             System.out.println(e.getMessage());
         }
     }
     private static void getDetailsAndBankTransfer(Account account){
         scanner.nextLine();
         System.out.println(Messages.ENTER_DESTINATION_ACCOUNT_NUMBER);
-        String destinationAccountNumber = scanner.nextLine();
+        int destinationAccountNumber = scanner.nextInt();
         System.out.println(Messages.ENTER_DESTINATION_IFSC_CODE);
+        scanner.nextLine();
         String destinationIfscCode = scanner.nextLine();
         System.out.println(Messages.ENTER_TRANSFER_AMOUNT);
         int amount = scanner.nextInt();
         getDetailsAndBankTransfer(account,destinationAccountNumber,destinationIfscCode,amount);
     }
-    private static void getDetailsAndBankTransfer(Account account,String destinationAccountNumber,String destinationIfscCode,int amount){
+    private static void getDetailsAndBankTransfer(Account account,int destinationAccountNumber,String destinationIfscCode,int amount){
         try {
             account.transfer(destinationAccountNumber,amount);
-            System.out.println(Messages.TRANSFER_SUCCESS);
         } catch (BeneficiaryException e) {
             if(e.getErrorCode() == 404){
-                System.out.println(Messages.BENEFICIARY_NOT_FOUND);
+                System.out.println(e.getMessage());
                 System.out.println(Messages.ADD_BENEFICIARY_NOW);
                 System.out.println(Messages.YES_OR_NO);
                 scanner.nextLine();
@@ -127,24 +154,24 @@ public class Main {
                     }
                 }
             }
-        } catch (AccountException e) {
+        } catch (AccountException | SQLException | TransactionException e) {
             System.out.println(e.getMessage());
         }
     }
     private static void getDetailsAndAddBeneficiary(Account account){
         scanner.nextLine();
         System.out.println(Messages.ENTER_DESTINATION_ACCOUNT_NUMBER);
-        String destinationAccountNumber = scanner.nextLine();
+        int destinationAccountNumber = scanner.nextInt();
         System.out.println(Messages.ENTER_DESTINATION_IFSC_CODE);
+        scanner.nextLine();
         String destinationIfscCode = scanner.nextLine();
         getDetailsAndAddBeneficiary(account,destinationAccountNumber,destinationIfscCode);
     }
-    private static void getDetailsAndAddBeneficiary(Account account, String destinationAccountNumber,String destinationIfscCode){
+    private static void getDetailsAndAddBeneficiary(Account account, int destinationAccountNumber,String destinationIfscCode){
         Beneficiary newBeneficiary = new Beneficiary(destinationAccountNumber,destinationIfscCode);
         try {
             account.addBeneficiary(newBeneficiary);
-            System.out.println(Messages.ADD_BENEFICIARY_SUCCESS);
-        } catch (BeneficiaryException e) {
+        } catch (BeneficiaryException | SQLException e) {
             System.out.println(e.getMessage());
         }
 
@@ -152,11 +179,10 @@ public class Main {
     private static void getDetailsAndRemoveBeneficiary(Account account){
         scanner.nextLine();
         System.out.println(Messages.ENTER_DESTINATION_ACCOUNT_NUMBER);
-        String destinationAccountNumber = scanner.nextLine();
+        int destinationAccountNumber = scanner.nextInt();
         try {
             account.removeBeneficiary(destinationAccountNumber);
-            System.out.println(Messages.REMOVE_BENEFICIARY_SUCCESS);
-        } catch (BeneficiaryException e) {
+        } catch (BeneficiaryException |SQLException e) {
             System.out.println(e.getMessage());
         }
 
@@ -164,21 +190,28 @@ public class Main {
     private static void viewAllAccounts(){
         try {
             Bank.viewAllAccounts();
-        } catch (AccountException e) {
+        } catch (AccountException | SQLException e) {
             System.out.println(e.getMessage());
         }
     }
     private static void viewAllTransactions(){
         try {
             Bank.viewAllTransactions();
-        } catch (TransactionException e) {
+        } catch (TransactionException | SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+    private static void viewAllTransactionsOfAccount(Account account){
+        try{
+            account.viewAllTransactions();
+        } catch (TransactionException | SQLException e) {
             System.out.println(e.getMessage());
         }
     }
     private static void viewAllBeneficiaries(Account account){
         try {
             account.viewBeneficiaries();
-        } catch (BeneficiaryException e) {
+        } catch (BeneficiaryException | SQLException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -203,7 +236,8 @@ public class Main {
         System.out.println("6. "+Messages.VIEW_BENEFICIARIES);
         System.out.println("7. "+Messages.ADD_BENEFICIARY);
         System.out.println("8. "+Messages.REMOVE_BENEFICIARY);
-        System.out.println("9. "+Messages.LOGOUT);
+        System.out.println("9. "+Messages.VIEW_ALL_TRANSACTIONS);
+        System.out.println("10. "+Messages.LOGOUT);
         System.out.println(Messages.ENTER_CHOICE);
     }
     private static void goToUserMenu(Account account){
@@ -211,12 +245,12 @@ public class Main {
         do{
             showUserOptions();
             choice = scanner.nextInt();
-            if(choice < 1 | choice > 9){
+            if(choice < 1 | choice > 10){
                 System.out.println(Messages.INVALID_INPUT);
             }else{
                 switch (choice){
                     case 1:
-                        System.out.println(account.toString());
+                        viewAccountDetails(account.getAccountNumber());
                         break;
                     case 2:
                         getDetailsAndChangePassword(account);
@@ -240,6 +274,9 @@ public class Main {
                         getDetailsAndRemoveBeneficiary(account);
                         break;
                     case 9:
+                        viewAllTransactionsOfAccount(account);
+                        break;
+                    case 10:
                         System.out.println(Messages.LOGGING_OUT);
                         break;
                     default:
@@ -248,7 +285,7 @@ public class Main {
                         break;
                 }
             }
-        }while(choice!=9);
+        }while(choice!=10);
     }
     private static void goToGeneralMenu(){
         int choice;
@@ -286,20 +323,8 @@ public class Main {
             }
         }while (choice != 0);
     }
-    private static void connectToDataBase(){
-        try {
-           String MYSQL_USER =  System.getenv("MYSQLUSER");
-           String MYSQL_PASSWORD = System.getenv("MYSQLPASS");
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection con= DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/bank",MYSQL_USER,MYSQL_PASSWORD);
-        } catch (ClassNotFoundException | SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static void main(String[] args) {
-        connectToDataBase();
-       goToGeneralMenu();
+    public static void main(String[] args) throws SQLException {
+        Database.getConnection();
+        goToGeneralMenu();
     }
 }

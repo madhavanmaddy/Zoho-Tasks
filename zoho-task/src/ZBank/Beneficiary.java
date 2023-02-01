@@ -1,13 +1,13 @@
 package ZBank;
 public class Beneficiary {
-    private String accountNumber;
-    private String ifscCode;
+    private final int accountNumber;
+    private final String ifscCode;
     private String nickName;
-    public Beneficiary(String _accountNumber, String _ifscCode){
+    public Beneficiary(int _accountNumber, String _ifscCode){
         this.accountNumber = _accountNumber;
         this.ifscCode = _ifscCode;
     }
-    Beneficiary(String _accountNumber,String _ifscCode,String _nickName){
+    Beneficiary(int _accountNumber,String _ifscCode,String _nickName){
         this.accountNumber = _accountNumber;
         this.ifscCode = _ifscCode;
         this.nickName = _nickName;
@@ -20,7 +20,7 @@ public class Beneficiary {
                 ", nickName='" + nickName + '\'' +
                 '}';
     }
-    public String getAccountNumber(){
+    public int getAccountNumber(){
         return this.accountNumber;
     }
     public String getIfscCode(){

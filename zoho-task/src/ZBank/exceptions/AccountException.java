@@ -16,4 +16,5 @@ public class AccountException extends Exception{
 401 - Password Mismatch
 404 - Account Not Found
 409 - Account Already Exists
+500 - Account Not Created
  */
