@@ -62,7 +62,7 @@ public class Bank {
     }
     public static Account getAccountByAccountNumber(int accountNumber) throws AccountException,SQLException{
         Connection connection =  Database.connection;
-        PreparedStatement statement = connection.prepareStatement("select accounts.accountNumber,customers.ckycNumber,accounts.ifscCode,customers.customerId,accounts.passwordHash,accounts.balance from accounts inner join customers on accounts.customerId=customers.customerId where accounts.accountNumber=?");
+        PreparedStatement statement = connection.prepareStatement("select * from accountsView where accountNumber=?");
         statement.setInt(1,accountNumber);
         ResultSet resultSet = statement.executeQuery();
         if(resultSet.next()){
@@ -72,7 +72,7 @@ public class Bank {
     }
     public static List<Account> getAccountsByCustomerID(int customerID) throws AccountException,SQLException {
         Connection connection =  Database.connection;
-        PreparedStatement statement = connection.prepareStatement("select accounts.accountNumber,customers.ckycNumber,accounts.ifscCode,customers.customerId,accounts.passwordHash,accounts.balance from accounts inner join customers on accounts.customerId=customers.customerId where accounts.customerId=?");
+        PreparedStatement statement = connection.prepareStatement("select * from accountsView where customerId=?");
         statement.setInt(1,customerID);
         ResultSet resultSet = statement.executeQuery();
         List<Account> accounts = new ArrayList<>();
@@ -114,7 +114,7 @@ public class Bank {
     public static void viewAllAccounts()throws AccountException,SQLException {
         Connection connection =  Database.connection;
         Statement statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery("select accounts.accountNumber,customers.ckycNumber,accounts.ifscCode,customers.customerId,accounts.passwordHash,accounts.balance from accounts inner join customers on accounts.customerId=customers.customerId");
+        ResultSet resultSet = statement.executeQuery("select * from accountsView");
         List<Account> accountsQueryResult = new ArrayList<>();
         while (resultSet.next()){
             accountsQueryResult.add(new Account(resultSet.getInt(1),resultSet.getString(2),resultSet.getString(3),resultSet.getInt(4),resultSet.getString(5),resultSet.getInt(6)));
