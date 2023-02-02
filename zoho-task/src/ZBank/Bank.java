@@ -62,22 +62,23 @@ public class Bank {
     }
     public static Account getAccountByAccountNumber(int accountNumber) throws AccountException,SQLException{
         Connection connection =  Database.connection;
-        PreparedStatement statement = connection.prepareStatement("select * from accounts where accountNumber=?");
+        PreparedStatement statement = connection.prepareStatement("select accounts.accountNumber,customers.ckycNumber,accounts.ifscCode,customers.customerId,accounts.passwordHash,accounts.balance from accounts inner join customers on accounts.customerId=customers.customerId where accounts.accountNumber=?");
         statement.setInt(1,accountNumber);
         ResultSet resultSet = statement.executeQuery();
         if(resultSet.next()){
-            return new Account(resultSet.getInt(1),resultSet.getString(2),resultSet.getInt(3),resultSet.getString(4),resultSet.getInt(5));
+            return new Account(resultSet.getInt(1),resultSet.getString(2),resultSet.getString(3),resultSet.getInt(4),resultSet.getString(5),resultSet.getInt(6));
         }
         throw new AccountException(404,Messages.ACCOUNT_NOT_FOUND);
     }
     public static List<Account> getAccountsByCustomerID(int customerID) throws AccountException,SQLException {
         Connection connection =  Database.connection;
-        PreparedStatement statement = connection.prepareStatement("select * from accounts where customerId=?");
+        PreparedStatement statement = connection.prepareStatement("select accounts.accountNumber,customers.ckycNumber,accounts.ifscCode,customers.customerId,accounts.passwordHash,accounts.balance from accounts inner join customers on accounts.customerId=customers.customerId where accounts.customerId=?");
         statement.setInt(1,customerID);
         ResultSet resultSet = statement.executeQuery();
         List<Account> accounts = new ArrayList<>();
         while(resultSet.next()){
-            accounts.add(new Account(resultSet.getInt(1),resultSet.getString(2),resultSet.getInt(3),resultSet.getString(4),resultSet.getInt(5)));
+            accounts.add(new Account(resultSet.getInt(1),resultSet.getString(2),resultSet.getString(3),resultSet.getInt(4),resultSet.getString(5),resultSet.getInt(6)));
+
         }
         return accounts;
     }
@@ -113,10 +114,10 @@ public class Bank {
     public static void viewAllAccounts()throws AccountException,SQLException {
         Connection connection =  Database.connection;
         Statement statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery("select * from accounts");
+        ResultSet resultSet = statement.executeQuery("select accounts.accountNumber,customers.ckycNumber,accounts.ifscCode,customers.customerId,accounts.passwordHash,accounts.balance from accounts inner join customers on accounts.customerId=customers.customerId");
         List<Account> accountsQueryResult = new ArrayList<>();
         while (resultSet.next()){
-            accountsQueryResult.add(new Account(resultSet.getInt(1),resultSet.getString(2),resultSet.getInt(3),resultSet.getString(4),resultSet.getInt(5)));
+            accountsQueryResult.add(new Account(resultSet.getInt(1),resultSet.getString(2),resultSet.getString(3),resultSet.getInt(4),resultSet.getString(5),resultSet.getInt(6)));
         }
         if(accountsQueryResult.isEmpty()){
             throw new AccountException(404,Messages.NO_ACCOUNT_FOUND);

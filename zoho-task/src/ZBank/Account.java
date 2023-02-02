@@ -6,7 +6,7 @@ import java.sql.*;
 import java.util.*;
 public class Account {
     private  int accountNumber;
-    private String ckycNumber;
+    private final String ckycNumber;
     private final String ifscCode;
     private  int customerID;
     private final String passwordHash;
@@ -16,8 +16,9 @@ public class Account {
         this.ifscCode = "ZBNK0000123";
         this.passwordHash = Bank.generateHash(password);
     }
-    public Account(int _accountNumber,String _ifscCode,int _customerId,String _passwordHash,int _balance){
+    public Account(int _accountNumber,String _ckycNumber,String _ifscCode,int _customerId,String _passwordHash,int _balance){
         this.accountNumber = _accountNumber;
+        this.ckycNumber = _ckycNumber;
         this.customerID = _customerId;
         this.ifscCode = _ifscCode;
         this.passwordHash = _passwordHash;
