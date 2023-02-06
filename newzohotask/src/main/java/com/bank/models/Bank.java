@@ -31,7 +31,7 @@ public class Bank {
             statement.setString(3, account.getPasswordHash());
             int affectedRows = statement.executeUpdate();
             if(affectedRows == 0){
-                throw new AccountException(500,Messages.ACCOUNT_CREATION_FAILURE);
+                throw new AccountException(500, Strings.ACCOUNT_CREATION_FAILURE);
             }
             ResultSet generatedKeys = statement.getGeneratedKeys();
             if(generatedKeys.next()){
@@ -50,7 +50,7 @@ public class Bank {
         if(account.comparePasswordHash(passwordHash)){
             return account;
         }else{
-            throw new AccountException(401,Messages.PASSWORD_MISMATCH);
+            throw new AccountException(401, Strings.PASSWORD_MISMATCH);
         }
     }
     public static String generateHash(String password){
@@ -69,7 +69,7 @@ public class Bank {
         if(resultSet.next()){
             return new Account(resultSet.getInt(1),resultSet.getString(2),resultSet.getString(3),resultSet.getInt(4),resultSet.getString(5),resultSet.getInt(6));
         }
-        throw new AccountException(404,Messages.ACCOUNT_NOT_FOUND);
+        throw new AccountException(404, Strings.ACCOUNT_NOT_FOUND);
     }
     public static List<Account> getAccountsByCustomerID(int customerID) throws AccountException,SQLException {
         Connection connection =  Database.connection;
@@ -104,11 +104,11 @@ public class Bank {
         }
         int affectedRows = statement.executeUpdate();
         if(affectedRows !=1){
-            throw new TransactionException(500,Messages.TRANSACTION_LOG_FAILURE);
+            throw new TransactionException(500, Strings.TRANSACTION_LOG_FAILURE);
         }
         ResultSet generatedKeys = statement.getGeneratedKeys();
         if(generatedKeys.next()){
-            System.out.println(Messages.TRANSACTION_SUCCESS);
+            System.out.println(Strings.TRANSACTION_SUCCESS);
             System.out.println("Your Transaction ID is "+generatedKeys.getInt(1));
         }
     }
@@ -121,7 +121,7 @@ public class Bank {
             accountsQueryResult.add(new Account(resultSet.getInt(1),resultSet.getString(2),resultSet.getString(3),resultSet.getInt(4),resultSet.getString(5),resultSet.getInt(6)));
         }
         if(accountsQueryResult.isEmpty()){
-            throw new AccountException(404,Messages.NO_ACCOUNT_FOUND);
+            throw new AccountException(404, Strings.NO_ACCOUNT_FOUND);
         }
         for(Account account : accountsQueryResult){
             System.out.println(account);
@@ -137,7 +137,7 @@ public class Bank {
             transactionQueryResult.add(new Transaction(resultSet.getString(1),resultSet.getInt(2),resultSet.getInt(3),resultSet.getInt(4),resultSet.getInt(5),resultSet.getString(6),TransactionType.values()[resultSet.getInt(7)]));
         }
         if(transactionQueryResult.isEmpty()){
-            throw new TransactionException(404,Messages.NO_TRANSACTION_FOUND);
+            throw new TransactionException(404, Strings.NO_TRANSACTION_FOUND);
         }
         for(Transaction transaction : transactionQueryResult){
             System.out.println(transaction);

@@ -46,9 +46,9 @@ public class Account {
         statement.setInt(2,this.accountNumber);
         int affectedRows = statement.executeUpdate();
         if(affectedRows == 0){
-            throw new TransactionException(500,Messages.CHANGE_PASSWORD_FAILURE);
+            throw new TransactionException(500, Strings.CHANGE_PASSWORD_FAILURE);
         }
-        System.out.println(Messages.CHANGE_PASSWORD_SUCCESS);
+        System.out.println(Strings.CHANGE_PASSWORD_SUCCESS);
     }
     public int getAccountNumber(){
         return this.accountNumber;
@@ -73,11 +73,11 @@ public class Account {
         statement.setString(4,newBeneficiary.getNickName());
         int affectedRows = statement.executeUpdate();
         if(affectedRows == 0){
-            throw new BeneficiaryException(500,Messages.ADD_BENEFICIARY_FAILURE);
+            throw new BeneficiaryException(500, Strings.ADD_BENEFICIARY_FAILURE);
         }
         ResultSet generatedKeys = statement.getGeneratedKeys();
         if(generatedKeys.next()) {
-            System.out.println(Messages.ADD_BENEFICIARY_SUCCESS);
+            System.out.println(Strings.ADD_BENEFICIARY_SUCCESS);
         }
     }
     public void viewBeneficiaries() throws BeneficiaryException,SQLException{
@@ -90,7 +90,7 @@ public class Account {
             beneficiaryQueryResult.add(new Beneficiary(resultSet.getInt(2),resultSet.getString(3),resultSet.getString(4)));
         }
         if(beneficiaryQueryResult.isEmpty()){
-            throw new BeneficiaryException(404,Messages.NO_BENEFICIARY_FOUND);
+            throw new BeneficiaryException(404, Strings.NO_BENEFICIARY_FOUND);
         }
         for(Beneficiary beneficiary : beneficiaryQueryResult){
             System.out.println(beneficiary);
@@ -103,14 +103,14 @@ public class Account {
         statement.setInt(2,accountNumber);
         int affectedRows = statement.executeUpdate();
         if(affectedRows == 0){
-            throw new BeneficiaryException(500,Messages.REMOVE_BENEFICIARY_FAILURE);
+            throw new BeneficiaryException(500, Strings.REMOVE_BENEFICIARY_FAILURE);
         }
-        System.out.println(Messages.REMOVE_BENEFICIARY_SUCCESS);
+        System.out.println(Strings.REMOVE_BENEFICIARY_SUCCESS);
     }
     public void withdraw(int amount)throws AccountException,SQLException,TransactionException {
         Account account = Bank.getAccountByAccountNumber(this.accountNumber);
         if(account.balance<amount){
-            throw new AccountException(400,Messages.INSUFFICIENT_BALANCE);
+            throw new AccountException(400, Strings.INSUFFICIENT_BALANCE);
         }
         Connection connection =  Database.connection;
         PreparedStatement statement = connection.prepareStatement("update accounts set balance=balance-? where accountNumber=?");
@@ -118,9 +118,9 @@ public class Account {
         statement.setInt(2,this.accountNumber);
         int affectedRows = statement.executeUpdate();
         if(affectedRows == 0){
-            throw new TransactionException(500,Messages.UPDATE_BALANCE_FAILURE);
+            throw new TransactionException(500, Strings.UPDATE_BALANCE_FAILURE);
         }
-        System.out.println(Messages.UPDATE_BALANCE_SUCCESS);
+        System.out.println(Strings.UPDATE_BALANCE_SUCCESS);
         Transaction transaction = new Transaction(amount,"Cash Withdrawl",TransactionType.WITHDRAW);
         transaction.setFromAccount(this.accountNumber);
         Bank.logTransaction(transaction);
@@ -132,9 +132,8 @@ public class Account {
         statement.setInt(2,this.accountNumber);
         int affectedRows = statement.executeUpdate();
         if(affectedRows == 0){
-            throw new TransactionException(500,Messages.UPDATE_BALANCE_FAILURE);
+            throw new TransactionException(500, Strings.UPDATE_BALANCE_FAILURE);
         }
-        System.out.println(Messages.UPDATE_BALANCE_SUCCESS);
         Transaction transaction = new Transaction(amount,"Cash Deposit",TransactionType.DEPOSIT);
         transaction.setToAccount(this.accountNumber);
         Bank.logTransaction(transaction);
@@ -148,12 +147,12 @@ public class Account {
         if(resultSet.next()){
             return;
         }
-        throw new BeneficiaryException(404,Messages.BENEFICIARY_NOT_FOUND);
+        throw new BeneficiaryException(404, Strings.BENEFICIARY_NOT_FOUND);
     }
     public void transfer(int accountNumber, int amount) throws BeneficiaryException, AccountException, TransactionException, SQLException {
         Account account = Bank.getAccountByAccountNumber(this.accountNumber);
         if(account.balance < amount){
-            throw new AccountException(400,Messages.INSUFFICIENT_BALANCE);
+            throw new AccountException(400, Strings.INSUFFICIENT_BALANCE);
         }
         Connection connection = Database.connection;
         getBeneficiary(accountNumber);
@@ -190,7 +189,7 @@ public class Account {
             transactionQueryResult.add(new Transaction(resultSet.getString(1),resultSet.getInt(2),resultSet.getInt(3),resultSet.getInt(4),resultSet.getInt(5),resultSet.getString(6),TransactionType.values()[resultSet.getInt(7)]));
         }
         if(transactionQueryResult.isEmpty()){
-            throw new TransactionException(404,Messages.NO_TRANSACTION_FOUND);
+            throw new TransactionException(404, Strings.NO_TRANSACTION_FOUND);
         }
         for(Transaction transaction : transactionQueryResult){
             System.out.println(transaction);

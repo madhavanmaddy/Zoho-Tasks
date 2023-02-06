@@ -1,6 +1,6 @@
 package com.bank.models;
 
-public class Messages {
+public class Strings {
     public static final String ENTER_CKYC = "Please Enter your CKYC Number : ";
     public static final String ENTER_PASSWORD = "Please Enter password for your Account : ";
     public static final String LOGIN_SUCCESS = "Login Success!";
@@ -10,6 +10,7 @@ public class Messages {
     public static final String ENTER_DEPOSIT_AMOUNT = "Please Enter the Amount to be deposited : ";
     public static final String ENTER_WITHDRAWL_AMOUNT = "Please Enter the Amount to be Withdrawn : ";
     public static final String ENTER_TRANSFER_AMOUNT = "Please Enter the Amount to be Transferred : ";
+    public static final String INVALID_REQUEST = "Invalid Request!";
     public static final String INSUFFICIENT_BALANCE = "Account Balance is insufficient to complete the transaction.";
     public static final String WITHDRAWL_SUCCESS = "Withdrawl Successful!";
     public static final String DEPOSIT_SUCCESS = "Cash Deposit Successful!";
@@ -61,4 +62,15 @@ public class Messages {
     public static final String INVALID_INPUT = "Invalid Input. Please Try Again.";
     public static final String THANK_YOU = "Thank you for using ZBank.";
     public static final String KEEP_BANKING = "Keep banking with us.";
+    public static final String KEY_MESSAGE = "message";
+    public static final String KEY_ACCOUNT = "account";
+    public static final String KEY_PASSWORD = "passwordHash";
+    public static final String KEY_ACCOUNT_NUMBER = "accountNumber";
+    public static final String KEY_IFSC = "ifscCode";
+    public static final String KEY_AMOUNT = "amount";
+    public static final String KEY_CKYC = "ckycNumber";
+    public static final String KEY_ACCOUNTS = "accounts";
+    public static final String CONTENT_TYPE = "application/json";
+    public static final String CHARACTER_ENCODING = "UTF-8";
+    public static final String SOMETHING_WENT_WRONG = "Something went Wrong.";
 }
