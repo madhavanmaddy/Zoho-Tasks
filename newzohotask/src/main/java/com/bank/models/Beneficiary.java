@@ -2,12 +2,8 @@ package com.bank.models;
 public class Beneficiary {
     private final int accountNumber;
     private final String ifscCode;
-    private String nickName;
-    public Beneficiary(int _accountNumber, String _ifscCode){
-        this.accountNumber = _accountNumber;
-        this.ifscCode = _ifscCode;
-    }
-    Beneficiary(int _accountNumber,String _ifscCode,String _nickName){
+    private final String nickName;
+    public Beneficiary(int _accountNumber, String _ifscCode, String _nickName){
         this.accountNumber = _accountNumber;
         this.ifscCode = _ifscCode;
         this.nickName = _nickName;

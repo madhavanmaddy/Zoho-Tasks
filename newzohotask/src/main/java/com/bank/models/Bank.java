@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Bank {
-    public static int getCustomerID(String ckycNumber) throws SQLException {
+    public static int getNewCustomerID(String ckycNumber) throws SQLException {
         Connection connection =  Database.connection;
         PreparedStatement statement = connection.prepareStatement("select * from customers where ckycNumber=?");
         statement.setString(1,ckycNumber);
@@ -20,10 +20,10 @@ public class Bank {
             statement = connection.prepareStatement("insert into customers (ckycNumber) values (?)");
             statement.setString(1,ckycNumber);
             statement.execute();
-            return getCustomerID(ckycNumber);
+            return getNewCustomerID(ckycNumber);
         }
     }
-    private static int getAccountNumber(Account account)throws AccountException,SQLException{
+    private static int getNewAccountNumber(Account account)throws AccountException,SQLException{
             Connection connection =  Database.connection;
             PreparedStatement statement = connection.prepareStatement("insert into accounts (ifscCode,customerId,passwordHash) values (?,?,?)",Statement.RETURN_GENERATED_KEYS);
             statement.setString(1, account.getIfscCode());
@@ -37,12 +37,12 @@ public class Bank {
             if(generatedKeys.next()){
              return generatedKeys.getInt(1);
             }
-            return getAccountNumber(account);
+            return getNewAccountNumber(account);
     }
     public static void createAccount (Account newAccount) throws AccountException , SQLException{
-        int customerId = getCustomerID(newAccount.getCkycNumber());
+        int customerId = getNewCustomerID(newAccount.getCkycNumber());
         newAccount.setCustomerID(customerId);
-        int accountNumber = getAccountNumber(newAccount);
+        int accountNumber = getNewAccountNumber(newAccount);
         newAccount.setAccountNumber(accountNumber);
     }
     public static Account login(int accountNumber,String passwordHash) throws AccountException, SQLException {
@@ -56,10 +56,9 @@ public class Bank {
     public static String generateHash(String password){
         return password;
     }
-    public static void deposit(int accountNumber,int amount) throws AccountException, SQLException, TransactionException {
+    public static int deposit(int accountNumber, int amount) throws AccountException, SQLException, TransactionException {
            Account account = Bank.getAccountByAccountNumber(accountNumber);
-           account.deposit(amount);
-
+           return account.deposit(amount);
     }
     public static Account getAccountByAccountNumber(int accountNumber) throws AccountException,SQLException{
         Connection connection =  Database.connection;
@@ -71,7 +70,7 @@ public class Bank {
         }
         throw new AccountException(404, Strings.ACCOUNT_NOT_FOUND);
     }
-    public static List<Account> getAccountsByCustomerID(int customerID) throws AccountException,SQLException {
+    public static List<Account> getAccountsByCustomerID(int customerID) throws SQLException {
         Connection connection =  Database.connection;
         PreparedStatement statement = connection.prepareStatement("select * from accountsView where customerId=?");
         statement.setInt(1,customerID);
@@ -83,7 +82,7 @@ public class Bank {
         }
         return accounts;
     }
-    public static void logTransaction(Transaction transaction)throws SQLException,TransactionException{
+    public static int logTransaction(Transaction transaction)throws SQLException,TransactionException{
         Connection connection =  Database.connection;
         PreparedStatement statement = connection.prepareStatement("insert into transactions (dateTime,fromAccount,toAccount,amount,remarks,transactionType) values (?,?,?,?,?,?)",Statement.RETURN_GENERATED_KEYS);
         statement.setString(1, LocalDateTime.now().toString());
@@ -108,9 +107,9 @@ public class Bank {
         }
         ResultSet generatedKeys = statement.getGeneratedKeys();
         if(generatedKeys.next()){
-            System.out.println(Strings.TRANSACTION_SUCCESS);
-            System.out.println("Your Transaction ID is "+generatedKeys.getInt(1));
+            return generatedKeys.getInt(1);
         }
+        return 0;
     }
     public static List<Account> viewAllAccounts()throws AccountException,SQLException {
         Connection connection =  Database.connection;
@@ -123,12 +122,9 @@ public class Bank {
         if(accountsQueryResult.isEmpty()){
             throw new AccountException(404, Strings.NO_ACCOUNT_FOUND);
         }
-        for(Account account : accountsQueryResult){
-            System.out.println(account);
-        }
         return accountsQueryResult;
     }
-    public static void viewAllTransactions() throws TransactionException,SQLException {
+    public static List<Transaction> viewAllTransactions() throws TransactionException,SQLException {
         Connection connection =  Database.connection;
         Statement statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery("select * from transactions");
@@ -139,8 +135,16 @@ public class Bank {
         if(transactionQueryResult.isEmpty()){
             throw new TransactionException(404, Strings.NO_TRANSACTION_FOUND);
         }
-        for(Transaction transaction : transactionQueryResult){
-            System.out.println(transaction);
+        return transactionQueryResult;
+    }
+    public static void closeAccount(int accountNumber) throws SQLException, AccountException {
+        Connection connection =  Database.connection;
+        PreparedStatement statement = connection.prepareStatement("update accounts set deleted=true where accountNumber=?");
+        statement.setInt(1,accountNumber);
+        int affectedRows = statement.executeUpdate();
+        if(affectedRows == 0){
+            throw new AccountException(500, Strings.ACCOUNT_DELETION_FAILURE);
         }
+        throw new AccountException(200,Strings.ACCOUNT_DELETION_SUCCESS);
     }
 }

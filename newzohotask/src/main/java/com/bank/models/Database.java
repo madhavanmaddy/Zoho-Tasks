@@ -8,6 +8,9 @@ public class Database {
 
     static Connection connection;
     public static void getConnection(){
+        if(connection != null){
+            return;
+        }
         try{
             Class.forName("com.mysql.cj.jdbc.Driver");
             String MYSQL_USER =  System.getenv("MYSQLUSER");
